@@ -1,0 +1,13 @@
+*.log*
+.cache
+logs
+*.jsonl
+models
+groupchat_code
+__pycache__
+results
+results_llama_ike
+answer_code
+docker
+result
+*.out*
