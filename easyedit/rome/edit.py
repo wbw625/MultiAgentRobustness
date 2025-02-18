@@ -10,7 +10,7 @@ from easyeditor import BaseEditor
 from easyeditor import ROMEHyperParams
 
 
-def edit_rome(gpus, num):
+def edit_rome(gpus, num, edit_model):
     os.environ["TOKENIZERS_PARALLELISM"] = "false"
     
     file_path = "./data/counterfact/humaneval_with_editing_question.json"
@@ -44,9 +44,7 @@ def edit_rome(gpus, num):
         else:
             os.environ['CUDA_VISIBLE_DEVICES'] = gpus
 
-        hparams = ROMEHyperParams.from_hparams("./config/rome/internlm.yaml")
-        # hparams = ROMEHyperParams.from_hparams("./config/rome/llama.yaml")
-        # hparams = ROMEHyperParams.from_hparams("./config/rome/qwen.yaml")
+        hparams = ROMEHyperParams.from_hparams(f"./config/rome/{edit_model}.yaml")
 
         editor = BaseEditor.from_hparams(hparams)
         metrics, edited_model, _ = editor.edit(
@@ -60,9 +58,7 @@ def edit_rome(gpus, num):
             return_orig_weights=False
         )
 
-        output_dir = "./models/edited_internlm_rome"
-        # output_dir = "./models/edited_llama_rome"
-        # output_dir = "./models/edited_qwen_rome"
+        output_dir = f"./models/edited_{edit_model}_rome"
 
         if not os.path.exists(output_dir):
             os.makedirs(output_dir)
@@ -85,13 +81,15 @@ def main():
     parser = argparse.ArgumentParser(description="Edit Rome with specified GPUs and serial number.")
     parser.add_argument("gpus", type=str, help="Comma-separated list of GPU IDs (e.g., '0,1').")
     parser.add_argument("num", type=int, help="Serial number to be used (e.g., 5).")
+    parser.add_argument("edit_model", type=int, help="Model to be edited (e.g., llama).")
     args = parser.parse_args()
 
     gpus = args.gpus
     num = args.num
+    edit_model = args.edit_model
     
     try:
-        edit_rome(gpus, num)
+        edit_rome(gpus, num, edit_model)
     except Exception as e:
         print(f"Edit error occurred: {e}")
 

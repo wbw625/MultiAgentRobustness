@@ -15,14 +15,12 @@ import autogen
 testbed_utils.init()
 ##############################
 
-import json
+import pickle
 
 def read_pkl():
-    with open('/home/jutj/multiagent/results_llama_ike/maxround11/pre_prompt.json', 'r') as f:
-        data = json.load(f)
-    prompts = [item["prompt_for_editing"] for item in data]
-    targets = [item["target_new_for_editing"] for item in data]
-    pre_prompt = "Fact: " + prompts[-1] + " " + targets[-1]
+    with open('/home/jutj/multiagent/results_llama_ike/IKE/embedding/all-MiniLM-L6-v2_list_1.pkl', 'rb') as f:
+        loaded_data = pickle.load(f)
+        pre_prompt = loaded_data['sentences'][0].strip()
     print(pre_prompt)
     return pre_prompt
 

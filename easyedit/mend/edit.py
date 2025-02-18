@@ -9,7 +9,7 @@ sys.path.append("/data1/jutj/EasyEdit")
 from easyeditor import BaseEditor, EditTrainer
 from easyeditor import MENDHyperParams, ZsreDataset
 
-def edit_mend(gpus, num):
+def edit_mend(gpus, num, edit_model):
     os.environ["TOKENIZERS_PARALLELISM"] = "false"
     
     file_path = "./data/counterfact/humaneval_with_editing_question.json"
@@ -43,9 +43,7 @@ def edit_mend(gpus, num):
         else:
             os.environ['CUDA_VISIBLE_DEVICES'] = gpus
 
-        hparams = MENDHyperParams.from_hparams("./config/mend/editor/internlm.yaml")
-        # hparams = MENDHyperParams.from_hparams("./config/mend/editor/llama.yaml")
-        # hparams = MENDHyperParams.from_hparams("./config/mend/editor/qwen.yaml")
+        hparams = MENDHyperParams.from_hparams(f"./config/mend/editor/{edit_model}.yaml")
 
         editor = BaseEditor.from_hparams(hparams)
         metrics, edited_model, _ = editor.edit(
@@ -60,9 +58,7 @@ def edit_mend(gpus, num):
             # return_orig_weights=False
         )
 
-        output_dir = "./models/edited_internlm_mend"
-        # output_dir = "./models/edited_llama_mend"
-        # output_dir = "./models/edited_qwen_mend"
+        output_dir = f"./models/edited_{edit_model}_mend"
 
         if not os.path.exists(output_dir):
             os.makedirs(output_dir)
@@ -85,13 +81,15 @@ def main():
     parser = argparse.ArgumentParser(description="Edit Mend with specified GPUs and serial number.")
     parser.add_argument("gpus", type=str, help="Comma-separated list of GPU IDs (e.g., '0,1').")
     parser.add_argument("num", type=int, help="Serial number to be used (e.g., 5).")
+    parser.add_argument("edit_model", type=int, help="Model to be edited (e.g., llama).")
     args = parser.parse_args()
 
     gpus = args.gpus
     num = args.num
+    edit_model = args.edit_model
     
     try:
-        edit_mend(gpus, num)
+        edit_mend(gpus, num, edit_model)
     except Exception as e:
         print(f"Edit error occurred: {e}")
 

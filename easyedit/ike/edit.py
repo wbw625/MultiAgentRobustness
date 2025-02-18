@@ -13,7 +13,7 @@ from easyeditor import IKEHyperParams
 from easyeditor.models.ike import encode_ike_facts
 
 
-def edit_ike(gpus, num):
+def edit_ike(gpus, num, edit_model):
     os.environ["TOKENIZERS_PARALLELISM"] = "false"
     
     file_path = "./data/counterfact/humaneval_with_editing_question.json"
@@ -47,9 +47,7 @@ def edit_ike(gpus, num):
         else:
             os.environ['CUDA_VISIBLE_DEVICES'] = gpus
 
-        hparams = IKEHyperParams.from_hparams("./config/ike/internlm.yaml")
-        # hparams = IKEHyperParams.from_hparams("./config/ike/llama.yaml")
-        # hparams = IKEHyperParams.from_hparams("./config/ike/qwen.yaml")
+        hparams = IKEHyperParams.from_hparams(f"./config/ike/{edit_model}.yaml")
 
         editor = BaseEditor.from_hparams(hparams)
         sentence_model = SentenceTransformer(hparams.sentence_model_name).to(f'cuda:{hparams.device}')
@@ -77,17 +75,6 @@ def edit_ike(gpus, num):
             sequential_edit = True,
             return_orig_weights=False
         )
-        
-        output_dir = "./models/edited_internlm_ike"
-        # output_dir = "./models/edited_llama_ike"
-        # output_dir = "./models/edited_qwen_ike"
-
-        if not os.path.exists(output_dir):
-            os.makedirs(output_dir)
-        edited_model.save_pretrained(output_dir)
-        editor.tok.save_pretrained(output_dir)
-
-        print("Edited model saved to", output_dir)
 
         print(metrics)
 
@@ -105,13 +92,15 @@ def main():
     parser = argparse.ArgumentParser(description="Edit IKE with specified GPUs and serial number.")
     parser.add_argument("gpus", type=str, help="Comma-separated list of GPU IDs (e.g., '0,1').")
     parser.add_argument("num", type=int, help="Serial number to be used (e.g., 5).")
+    parser.add_argument("edit_model", type=int, help="Model to be edited (e.g., llama).")
     args = parser.parse_args()
 
     gpus = args.gpus
     num = args.num
+    edit_model = args.edit_model
     
     try:
-        edit_ike(gpus, num)
+        edit_ike(gpus, num, edit_model)
     except Exception as e:
         print(f"Edit error occurred: {e}")
 
